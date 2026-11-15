@@ -1,26 +1,29 @@
 {
   "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
-  "name": "LibraryTemplate",
+  "name": "liblog-sw",
   "version": "1.0.0",
-  "description": "Templates for libraries compatible with the PlatformIO ecosystem",
+  "description": "Simple logging library, suitable for every platform",
   "keywords": [
     "template"
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/eagletrt/liblog-sw"
   },
   "authors": [
     {
-      "name": "Antonio Gelain",
-      "email": "antonio.gelain2@gmail.com",
+      "name": "Mirko Lana",
+      "email": "mirko.lana@eagletrt.it",
       "maintainer": true
     }
   ],
   "license": "AGPL-3.0-only",
   "frameworks": "*",
   "platforms": "*",
-  "headers": [],
+  "headers": [
+    "include/logger.h",
+    "include/logger-api.h",
+  ],
   "examples": [],
   "export": {
     "include": [
