@@ -20,6 +20,12 @@
   "license": "AGPL-3.0-only",
   "frameworks": "*",
   "platforms": "*",
+  "dependencies": [
+    {
+      "name": "LibEagleTrt",
+      "version": "https://github.com/eagletrt/libeagletrt-sw.git#v0.1.0"
+    }
+  ],
   "headers": [
     "include/logger.h",
     "include/logger-api.h",
