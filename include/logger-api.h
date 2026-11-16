@@ -15,7 +15,7 @@
 
 
 /*!
- * \brief           logger_api_macros Convenience macros that wrap \ref logger_api_emit.
+ * \defgroup           logger_api_macros Convenience macros that wrap \ref logger_api_emit.
  *
  * \note            The macros include the source line number in each log message using
  *                  \p __LINE__, making it easier to locate where the message originated.
