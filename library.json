@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Simple logging library, suitable for every platform",
   "keywords": [
-    "template"
+    "embedded",
+    "logging-system"
   ],
   "repository": {
     "type": "git",
@@ -27,8 +28,8 @@
     }
   ],
   "headers": [
-    "include/logger.h",
-    "include/logger-api.h",
+    "logger.h",
+    "logger-api.h"
   ],
   "examples": [],
   "export": {
@@ -36,5 +37,8 @@
       "src/**",
       "include/**"
     ]
+  },
+  "build": {
+    "flags": "-std=gnu23"
   }
 }

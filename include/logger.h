@@ -51,6 +51,7 @@ enum LoggerReturnCode {
     LOGGER_RC_NULL_POINTER,       /*!< Unexpected \c NULL pointer detected. */
     LOGGER_RC_BUFFER_SIZE_ERROR,  /*!< Buffer size limit exeeded. */
     LOGGER_RC_TRANSMISSION_ERROR, /*!< Transmission failed. */
+    LOGGER_RC_INVALID_ARGUMENT,   /*!< Invalid argument passed to a function. */
 };
 
 // clang-format off
