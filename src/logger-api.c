@@ -135,12 +135,14 @@ enum LoggerReturnCode logger_api_emit(
     va_list args;
     va_start(args, fmt);
 
+    const size_t remaining = LOGGER_EMIT_BUFFER_SIZE - offset;
     int result = vsnprintf(
         emit_buffer + offset,
-        LOGGER_EMIT_BUFFER_SIZE,
+        remaining,
         fmt,
         args);
-    if (result < 0) {
+    if (result < 0 || (size_t)result >= remaining) {
+        va_end(args);
         return LOGGER_RC_TRANSMISSION_ERROR;
     }
 
