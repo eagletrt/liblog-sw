@@ -25,6 +25,20 @@ EAGLETRT_STATIC int prv_logger_api_dummy_flush(void) {
 }
 
 /*!
+ * \brief           Check if the given level bitmask is valid or not.
+ *
+ * \details         The function checks if it's a power of two and less than or
+ *                  equal \ref LOGGER_LEVEL_DEBUG.
+ *
+ * \param[in]       level Bitmask representing the level.
+ *
+ * \return          True if the level bitmask is valid, false otherwise.
+ */
+EAGLETRT_STATIC_INLINE bool prv_logger_api_level_is_valid(enum LoggerLevel level) {
+    return ((level & (level - 1)) == 0U) && (level <= LOGGER_LEVEL_DEBUG);
+}
+
+/*!
  * \brief           Convert a level bitmask into the corresponding index.
  *
  * \details         The function decrements by 1 the bitmask, then counts the
@@ -49,7 +63,7 @@ EAGLETRT_STATIC int prv_logger_api_dummy_flush(void) {
  *   </li>
  * </ul>
  * \endhtmlonly
- *                    
+ *
  * \note            I personally think that using this type of solution is
  *                  better than using a switch-case statement or replacing it
  *                  entirely with levels used as indexes. Level bitmasks gives
@@ -63,8 +77,7 @@ EAGLETRT_STATIC_INLINE uint8_t prv_logger_api_bit_index(enum LoggerLevel level) 
     return (bitmask & 0x33U) + ((bitmask >> 2) & 0x33U);
 }
 
-enum LoggerReturnCode
-logger_api_init(
+enum LoggerReturnCode logger_api_init(
     logger_write_callback write,
     logger_flush_callback flush,
     uint8_t verbosity) {
@@ -98,6 +111,10 @@ enum LoggerReturnCode logger_api_emit(
 
     if (logger_handler.write == NULL || tag == NULL || fmt == NULL) {
         return LOGGER_RC_NULL_POINTER;
+    }
+
+    if (!prv_logger_api_level_is_valid(level) || tag[0] == '\0') {
+        return LOGGER_RC_INVALID_ARGUMENT;
     }
 
     if (!(logger_handler.verbosity & level)) {

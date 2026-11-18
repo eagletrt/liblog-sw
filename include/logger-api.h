@@ -13,7 +13,6 @@
 
 #include "logger.h"
 
-
 /*!
  * \defgroup           logger_api_macros Convenience macros that wrap \ref logger_api_emit.
  *
