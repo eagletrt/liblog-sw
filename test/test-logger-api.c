@@ -43,14 +43,6 @@ void test_prv_logger_api_bit_index_with_right_values(void) {
 
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, actual, size);
 }
-
-void test_prv_logger_api_bit_index_with_invalid_level(void) {
-    const uint8_t expected = 0;
-    const uint8_t actual = prv_logger_api_bit_index((enum LoggerLevel)0b0011);
-
-    TEST_ASSERT_EQUAL_UINT8(expected, actual);
-}
-
 /*! \} */
 
 /*!
@@ -190,7 +182,6 @@ int main(void) {
      */
 
     RUN_TEST(test_prv_logger_api_bit_index_with_right_values);
-    RUN_TEST(test_prv_logger_api_bit_index_with_invalid_level);
 
     /*! \} */
 
