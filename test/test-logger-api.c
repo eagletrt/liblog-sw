@@ -13,6 +13,7 @@ DEFINE_FFF_GLOBALS;
 #include "logger.h"
 #include "logger-api.h"
 
+extern bool prv_logger_api_level_is_valid(enum LoggerLevel level);
 extern uint8_t prv_logger_api_bit_index(enum LoggerLevel level);
 extern struct LoggerHandler logger_handler;
 
@@ -25,6 +26,43 @@ void setUp(void) {
         flush_wrapper,
         LOGGER_ENABLE_ALL);
 }
+
+/*!
+ * \defgroup        test_logger_api_level_is_valid Tests for level checking function.
+ * \{
+ */
+
+void test_prv_logger_api_level_is_valid_with_right_values(void) {
+    constexpr size_t size = 4U;
+    const char *const failure_messages[size] = {
+        "LOGGER_LEVEL_INFO should be valid!",
+        "LOGGER_LEVEL_ERROR should be valid!",
+        "LOGGER_LEVEL_WARNING should be valid!",
+        "LOGGER_LEVEL_DEBUG should be valid!",
+    };
+    const bool results[size] = {
+        prv_logger_api_level_is_valid(LOGGER_LEVEL_INFO),
+        prv_logger_api_level_is_valid(LOGGER_LEVEL_ERROR),
+        prv_logger_api_level_is_valid(LOGGER_LEVEL_WARNING),
+        prv_logger_api_level_is_valid(LOGGER_LEVEL_DEBUG),
+    };
+
+    for (size_t i = 0U; i < size; ++i) {
+        TEST_ASSERT_TRUE_MESSAGE(results[i], failure_messages[i]);
+    }
+}
+
+void test_prv_logger_api_level_is_valid_with_non_power_of_two_bitmask(void) {
+    constexpr enum LoggerLevel level = (enum LoggerLevel)0b0011;
+    TEST_ASSERT_FALSE(prv_logger_api_level_is_valid(level));
+}
+
+void test_prv_logger_api_level_is_valid_with_large_bitmask_value(void) {
+    constexpr enum LoggerLevel level = (enum LoggerLevel)0b10000;
+    TEST_ASSERT_FALSE(prv_logger_api_level_is_valid(level));
+}
+
+/*! \} */
 
 /*!
  * \defgroup        test_logger_api_bit_index Tests for level bitmask to index private function.
@@ -43,6 +81,7 @@ void test_prv_logger_api_bit_index_with_right_values(void) {
 
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, actual, size);
 }
+
 /*! \} */
 
 /*!
@@ -177,6 +216,17 @@ int main(void) {
     UNITY_BEGIN();
 
     /*!
+     * \addgroup        test_logger_api_level_is_valid Run level checking tests.
+     * \{
+     */
+
+    RUN_TEST(test_prv_logger_api_level_is_valid_with_right_values);
+    RUN_TEST(test_prv_logger_api_level_is_valid_with_non_power_of_two_bitmask);
+    RUN_TEST(test_prv_logger_api_level_is_valid_with_large_bitmask_value);
+
+    /*! \} */
+
+    /*!
      * \addgroup        test_logger_api_bit_index Run level bitmask to index tests.
      * \{
      */
@@ -186,7 +236,7 @@ int main(void) {
     /*! \} */
 
     /*!
-     * \defgroup        test_logger_api_init Run itialization tests.
+     * \addgroup        test_logger_api_init Run itialization tests.
      * \{
      */
 
@@ -197,7 +247,7 @@ int main(void) {
     /*! \} */
 
     /*!
-     * \defgroup        test_logger_api_emit Run emit function tests.
+     * \addgroup        test_logger_api_emit Run emit function tests.
      * \{
      */
 
