@@ -14,7 +14,10 @@
 
 #define LOGGER_DISABLE_ALL (0b0000U)  /*!< Disable all logging levels. */
 #define LOGGER_ENABLE_ALL (0b1111U)   /*!< Enable all logging levels. */
-#define LOGGER_EMIT_BUFFER_SIZE (64U) /*!< The emit buffer capacity. */
+
+#ifndef LOGGER_EMIT_BUFFER_SIZE 
+    #define LOGGER_EMIT_BUFFER_SIZE (64U) /*!< The emit buffer capacity. */
+#endif /*! LOGGER_EMIT_BUFFER_SIZE */
 
 /*!
  * \brief           Writes a formatted message through the logger.

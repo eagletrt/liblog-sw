@@ -15,7 +15,7 @@
 
 #include "eagletrt.h"
 
-EAGLETRT_STATIC struct LoggerHandler logger_handler;
+EAGLETRT_STATIC struct LoggerHandler logger_default_handler = { 0 };
 
 /*!
  * \brief           Dummmy flush function.
@@ -72,12 +72,13 @@ EAGLETRT_STATIC_INLINE bool prv_logger_api_level_is_valid(enum LoggerLevel level
  *                  ~Mirko
  */
 EAGLETRT_STATIC_INLINE uint8_t prv_logger_api_bit_index(enum LoggerLevel level) {
-    uint8_t bitmask = level - 1;
+    uint8_t bitmask = level - 1; // e.g. 0b1000 - 1 = 0b0111 (3 set bits)
     bitmask = bitmask - ((bitmask >> 1) & 0x55U);
     return (bitmask & 0x33U) + ((bitmask >> 2) & 0x33U);
 }
 
 enum LoggerReturnCode logger_api_init(
+    struct LoggerHandler *logger_handler,
     logger_write_callback write,
     logger_flush_callback flush,
     uint8_t verbosity) {
@@ -85,18 +86,28 @@ enum LoggerReturnCode logger_api_init(
         return LOGGER_RC_NULL_POINTER;
     }
 
-    logger_handler.write = write;
-    logger_handler.flush = flush == NULL ? prv_logger_api_dummy_flush : flush;
-    logger_handler.verbosity = verbosity;
+    if (logger_handler == NULL) {
+        logger_handler = &logger_default_handler;
+    }
+
+    logger_handler->write = write;
+    logger_handler->flush = flush == NULL ? prv_logger_api_dummy_flush : flush;
+    logger_handler->verbosity = verbosity;
 
     return LOGGER_RC_OK;
 }
 
-void logger_api_set_verbosity(uint8_t verbosity) {
-    logger_handler.verbosity = verbosity;
+void logger_api_set_verbosity(
+    struct LoggerHandler *logger_handler,
+    uint8_t verbosity) {
+    if (logger_handler == NULL) {
+        logger_handler = &logger_default_handler;
+    }
+    logger_handler->verbosity = verbosity;
 }
 
-enum LoggerReturnCode logger_api_emit(
+enum LoggerReturnCode int_logger_api_emit(
+    const struct LoggerHandler *logger_handler,
     enum LoggerLevel level,
     const char *tag,
     const char *fmt,
@@ -109,7 +120,10 @@ enum LoggerReturnCode logger_api_emit(
     };
     static char emit_buffer[LOGGER_EMIT_BUFFER_SIZE];
 
-    if (logger_handler.write == NULL || tag == NULL || fmt == NULL) {
+    if (logger_handler == NULL) {
+        logger_handler = &logger_default_handler;
+    }
+    if (logger_handler->write == NULL || tag == NULL || fmt == NULL) {
         return LOGGER_RC_NULL_POINTER;
     }
 
@@ -117,7 +131,7 @@ enum LoggerReturnCode logger_api_emit(
         return LOGGER_RC_INVALID_ARGUMENT;
     }
 
-    if (!(logger_handler.verbosity & level)) {
+    if (!(logger_handler->verbosity & level)) {
         return LOGGER_RC_OK;
     }
 
@@ -148,8 +162,8 @@ enum LoggerReturnCode logger_api_emit(
 
     va_end(args);
 
-    result = logger_handler.write(emit_buffer, offset + result);
-    return (result >= 0 && !logger_handler.flush())
+    result = logger_handler->write(emit_buffer, offset + result);
+    return (result >= 0 && !logger_handler->flush())
                ? LOGGER_RC_OK
                : LOGGER_RC_TRANSMISSION_ERROR;
 }
