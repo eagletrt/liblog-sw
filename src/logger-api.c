@@ -15,6 +15,13 @@
 
 #include "eagletrt.h"
 
+EAGLETRT_STATIC const char *const logger_message_headers[] = {
+    "INFO",
+    "ERROR",
+    "WARN",
+    "DEBUG",
+};
+
 EAGLETRT_STATIC struct LoggerHandler logger_default_handler = { 0 };
 
 /*!
@@ -112,12 +119,6 @@ enum LoggerReturnCode int_logger_api_emit(
     const char *tag,
     const char *fmt,
     ...) {
-    static const char *const MESSAGE_HEADERS[] = {
-        "INFO",
-        "ERROR",
-        "WARN",
-        "DEBUG",
-    };
     static char emit_buffer[LOGGER_EMIT_BUFFER_SIZE];
 
     if (logger_handler == NULL) {
@@ -140,7 +141,7 @@ enum LoggerReturnCode int_logger_api_emit(
         emit_buffer,
         LOGGER_EMIT_BUFFER_SIZE,
         "[%-5s] @%s",
-        MESSAGE_HEADERS[prv_logger_api_bit_index(level)],
+        logger_message_headers[prv_logger_api_bit_index(level)],
         tag);
     if (offset < 0 || offset >= (const int)LOGGER_EMIT_BUFFER_SIZE) {
         return LOGGER_RC_BUFFER_SIZE_ERROR;

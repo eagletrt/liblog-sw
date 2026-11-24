@@ -15,6 +15,7 @@ DEFINE_FFF_GLOBALS;
 
 extern bool prv_logger_api_level_is_valid(enum LoggerLevel level);
 extern uint8_t prv_logger_api_bit_index(enum LoggerLevel level);
+extern const char *const logger_message_headers[]; // Could it be useful
 extern struct LoggerHandler logger_default_handler;
 
 FAKE_VALUE_FUNC2(int, write_wrapper, const char *, size_t);
