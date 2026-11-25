@@ -99,28 +99,28 @@ For example, if you want to disable warning logs, you can use the `^` operator
 with `LOGGER_ENABLE_ALL`:
 
 ```c
-	int main(void) {
-		// ...
+int main(void) {
+	// ...
 
-		uint8_t verbosity = LOGGER_ENABLE_ALL ^ LOGGER_LEVEL_WARNING;
-		logger_api_set_verbosity(NULL, verbosity)
+	uint8_t verbosity = LOGGER_ENABLE_ALL ^ LOGGER_LEVEL_WARNING;
+	logger_api_set_verbosity(NULL, verbosity)
 
-		// ...
-	}
+	// ...
+}
 ```
 
 Or, if you want to enable only informational and error logs, you can do as
 follows:
 
 ```c
-	int main(void) {
-		// ...
+int main(void) {
+	// ...
 
-		uint8_t verbosity = LOGGER_LEVEL_INFO | LOGGER_LEVEL_ERROR;
-		logger_api_set_verbosity(NULL, verbosity)
+	uint8_t verbosity = LOGGER_LEVEL_INFO | LOGGER_LEVEL_ERROR;
+	logger_api_set_verbosity(NULL, verbosity)
 
-		// ...
-	}
+	// ...
+}
 ```
 
 ## Acknowledgements
