@@ -1,57 +1,138 @@
-# LIBSTM32-SW-TEMPLATE
+# LIBLOG
 
-This repository serves as a template for libraries compatible with the
-[PlatformIO ecosystem](https://docs.platformio.org/en/latest/librarymanager/creating.html).
+This library implements a simple and easy-to-use logging system, suitable for
+(almost) all platforms featuring a C-lang compiler.
 
 ## Usage
 
-Before starting to develop the library, a couple of things need to be done:
-1. Change this README explaining the library and the functionalities that it offers
-2. Modify the `library.json` including:
-    - The **name** of the library
-    - The library **version**
-    - The **description** explaining what the library does and for which devices
-    - The list of **keywords**
-    - The repository **url** (and type if necessary)
-    - The list of **authors**
-    - The supported **frameworks** and **platforms** (if needed)
-    - The list of **header files** of the library
-    - The list of **examples**
-    - The file of the library to **export** (if needed)
-3. Modify the `Doxyfile`:
-    - change the `PROJECT_NAME` to the name of the library
-    - change the `VERSION` to the version of the library
+There are two main ways to use `liblog`:
 
-## Structure
+1. By configuring its internal private handler
+   ```c
+   #include <stddef.h>
+   #include <stdint.h>
 
-The code of the library should be splitted in sources which must be placed inside
-the `src` folder and headers which must be placed inside the `include` folder.
+   #include "logger.h"
+   #include "logger-api.h"
 
-Inside the `example` folder multiple source files should be placed to further
-explain how to use the library and how it works in different scenario.
+     #define TAG "MAIN"
 
-The library must be tested with the maximum possible code coverage, the source
-code used to run the unit tests should be put inside the `test` folder.
+   // Maps to the platform's UART transmit routine
+   static int uart_write(const char *msg, size_t size) {
+       return (int)uart_send(msg, size); // e.g. HAL_UART_Transmit
+   }
 
-If scripts or other tools are needed for the library they must be put inside
-the `tools` folder.
+   int main(void) {
+       logger_api_init(NULL, uart_write, NULL, LOGGER_ENABLE_ALL);
 
-No other folders should be created besides the ones described before if not
-necessary, to handle complex file structures nested folders can be used.
+       LOGGER_API_INFO(NULL, TAG, "system boot");
+       LOGGER_API_WARNING(NULL, TAG, "low battery voltage: %dmV", 3200);
+       LOGGER_API_ERROR(NULL, TAG, "sensor %d unreachable", 2);
 
-For more info check the READMEs inside the corresponding folders.
+       while (true) {
+           LOGGER_API_DEBUG(NULL, TAG, "heartbeat");
+       }
+   }
+   ```
+1. By configuring per peripheral handlers:
+   ```c
+   #include <stdio.h>
+   #include <stddef.h>
 
-## Git Hooks
+   #include "logger.h"
+   #include "logger-api.h"
 
-To setup git hooks in your local repository you will have to execute the following commands:
-```sh
-cd <library-name>
+   #define TAG "MAIN"
+
+   static FILE *prv_log_file = NULL;
+   static struct LoggerHandler prv_uart_handler = { 0 };
+   static struct LoggerHandler prv_file_handler = { 0 };
+
+   // Maps to the platform's UART transmit routine
+   static int prv_uart_write(const char *msg, size_t size) {
+       return uart_send(msg, size);
+   }
+
+   static int prv_file_write(const char *msg, size_t size) {
+       return prv_log_file == NULL ? -1 : (int)fwrite(msg, 1U, size, prv_log_file);
+   }
+
+   static int prv_file_flush(void) {
+       return prv_log_file == NULL ? -1 : fflush(prv_log_file);
+   }
+
+   int main(void) {
+       prv_log_file = fopen("system.log", "a");
+       if (prv_log_file == NULL) {
+           return 1;
+       }
+
+       logger_api_init(&prv_uart_handler, prv_uart_write, NULL, LOGGER_ENABLE_ALL);
+       logger_api_init(&prv_file_handler, prv_file_write, prv_file_flush, LOGGER_ENABLE_ALL);
+
+       LOGGER_API_INFO(&prv_uart_handler, TAG, "system boot");
+       LOGGER_API_WARNING(&prv_uart_handler, TAG, "battery low voltange: %dmV", 3200);
+
+       LOGGER_API_INFO(&prv_file_handler, TAG, "system boot");
+       LOGGER_API_ERROR(&prv_file_handler, TAG, "sensor %d unreachable", 2);
+
+    		while (true) {
+       LOGGER_API_DEBUG(&prv_uart_handler, TAG, "heartbeat");
+    		}
+
+       fclose(prv_log_file);
+       prv_log_file = NULL;
+
+       return 0;
+   }
+   ```
+
+### Verbosity
+
+Every log level is a bitmask. To enable a specific log level you have to set its
+corrispoding bit to 1 and pass it to the handler by using the
+`logger_api_set_verbosity` function. The verbosity level can be composed by
+using the `|`/`^` operator or by using pre-defined `LOGGER_ENBALE_ALL` and
+`LOGGER_DISABLE_ALL` constants.
+
+For example, if you want to disable warning logs, you can use the `^` operator
+with `LOGGER_ENABLE_ALL`:
+
+```c
+	int main(void) {
+		// ...
+
+		uint8_t verbosity = LOGGER_ENABLE_ALL ^ LOGGER_LEVEL_WARNING;
+		logger_api_set_verbosity(NULL, verbosity)
+
+		// ...
+	}
 ```
 
-```sh
-chmod +x hooks/pre-commit
+Or, if you want to enable only informational and error logs, you can do as
+follows:
+
+```c
+	int main(void) {
+		// ...
+
+		uint8_t verbosity = LOGGER_LEVEL_INFO | LOGGER_LEVEL_ERROR;
+		logger_api_set_verbosity(NULL, verbosity)
+
+		// ...
+	}
 ```
 
-```sh
-git config core.hooksPath hooks/
-```
+## Acknowledgements
+
+Thanks to:
+
+- [chqrlie](https://stackoverflow.com/a/71539401) and
+  [Sean Eron Anderson](https://graphics.stanford.edu/%7Eseander/bithacks.html#CountBitsSetParallel)
+  for the algorithms that inspired the `prv_logger_api_bit_index`
+  implementation.
+
+## License
+
+This libary is licensed under the
+[GNU Affero General Public License v3.0](LICENSE).
